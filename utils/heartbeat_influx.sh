@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# INFLUX_URL, INFLUX_ORG, INFLUX_BUCKET, INFLUX_TOKEN set in environment
-# Usage: heartbeat_influx.sh <measurement> <status> <tags...>
+# Env required: INFLUX_HOST, INFLUX_PORT, INFLUX_DB
+# Optional: INFLUX_USER, INFLUX_PASS
+# Usage: heartbeat_influx_v1.sh <measurement> <status_int> <tags...>
+
 meas="${1:-daq_heartbeat}"; shift || true
 status="${1:-0}"; shift || true
 tags="$*"
 
 ts_ns=$(date +%s%N)
 line="${meas},host=$(hostname)${tags:+,}${tags} status=${status}i ${ts_ns}"
-curl -sS -XPOST "$INFLUX_URL/api/v2/write?org=$INFLUX_ORG&bucket=$INFLUX_BUCKET&precision=ns" \
-  -H "Authorization: Token $INFLUX_TOKEN" \
-  --data-binary "$line" >/dev/null
+
+base="http://${INFLUX_HOST}:${INFLUX_PORT}/write?db=${INFLUX_DB}&precision=ns"
+if [[ -n "${INFLUX_USER:-}" && -n "${INFLUX_PASS:-}" ]]; then
+  base="${base}&u=${INFLUX_USER}&p=${INFLUX_PASS}"
+fi
+
+curl -sS -XPOST "$base" --data-binary "$line" >/dev/null

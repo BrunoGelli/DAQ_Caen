@@ -1,0 +1,27 @@
+# Build artifacts
+*.o
+*.so
+*.a
+*.dSYM/
+build/
+cmake-build*/
+
+# Data and runtime
+data/
+logs/
+state/
+*.root
+
+# Environment / configs
+.env
+.env.*
+.vscode/
+.idea/
+
+# System junk
+*.swp
+.DS_Store
+
+# Backups
+codeBackup/
+EOF
