@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-source "/home/ANNIE/daq/orchestrator/.env"
+#source "/home/ANNIE/daq/orchestrator/.env"
 
 export INFLUX_HOST INFLUX_PORT INFLUX_DB INFLUX_USER INFLUX_PASS
 export DATA_DIR UTILS_DIR SW_BIN TH_BIN
@@ -12,8 +12,9 @@ export DATA_DIR UTILS_DIR SW_BIN TH_BIN
 : "${TH_BIN:=${SW_BIN}}"
 
 : "${DAQ_CHANNEL:=0}"
-: "${DAQ_THRESHOLD:=20}"
-: "${DAQ_N_EVENTS:=100}"
+: "${DAQ_THRESHOLD:=164}" #20mV
+: "${TH_N_EVENTS:=10000}"
+: "${SW_N_EVENTS:=1000}"
 
 # Influx v1 (optional defaults)
 : "${INFLUX_HOST:=192.168.197.46}"
@@ -39,9 +40,10 @@ mode="sw"
 root_out="${DATA_DIR}/run_${run}_${ts}_${mode}.root"
 echo "[run] SW acquisition -> ${root_out}"
 "${SW_BIN}" \
-  -n "${DAQ_N_EVENTS}" \
+  -n "${SW_N_EVENTS}" \
   -m sw \
   -c "${DAQ_CHANNEL}" \
+  -r 1500 \
   --root "${root_out}" || sw_ok=0
 
 "${UTILS_DIR}/heartbeat_influx.sh" "DT5730S" "${sw_ok}" "mode=sw,run=${run}"
@@ -51,10 +53,12 @@ mode="self"
 root_out="${DATA_DIR}/run_${run}_${ts}_${mode}.root"
 echo "[run] Threshold acquisition -> ${root_out}"
 "${TH_BIN}" \
-  -n "${DAQ_N_EVENTS}" \
+  -n "${TH_N_EVENTS}" \
   -m self \
   -c "${DAQ_CHANNEL}" \
   -t "${DAQ_THRESHOLD}" \
+  -r 1500 \
+  --post 80 \
   --root "${root_out}" || th_ok=0
 
 "${UTILS_DIR}/heartbeat_influx.sh" "DT5730S" "${th_ok}" "mode=self,run=${run}"
