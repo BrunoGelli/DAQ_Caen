@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-source "orchestrator/.env"
+source "/home/ANNIE/daq/orchestrator/.env"
 
 export INFLUX_HOST INFLUX_PORT INFLUX_DB INFLUX_USER INFLUX_PASS
 export DATA_DIR UTILS_DIR SW_BIN TH_BIN
